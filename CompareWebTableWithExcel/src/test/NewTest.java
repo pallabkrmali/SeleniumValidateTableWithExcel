@@ -6,6 +6,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -32,8 +33,15 @@ public class NewTest {
 		  for(int i=1;i<=th.size();i++) { // Loop start for table column excluding header row
 			  System.out.println("Data for Column: "+i);
 			  List<WebElement> td=driver.findElementsByXPath("//table[@id='webtable']//tr//td["+i+"]");
+			  System.out.println("Check A Sorted for col:"+i+" is ="+CheckShorted('A',td));
+			  System.out.println("Check D Sorted for col:"+i+" is ="+CheckShorted('D',td));
+			  System.out.println("Check Numeric A Sorted for col:"+i+" is ="+checkNumericSorted('A',td));
+			  System.out.println("Check Numeric D Sorted for col:"+i+" is ="+checkNumericSorted('D',td));
+			  //checkNumericSorted
 			  ListIterator<WebElement> li=td.listIterator();
 			  String[] tempRow=getColumnData(i);
+			  //Arrays.sort(tempRow);
+			  //System.out.println("Sorted Array:"+Arrays.toString(tempRow));
 			  int j=0;
 			  System.out.println("Assert check for size");
 			  Assert.assertEquals(td.size(), tempRow.length);//(td.size()==tempRow.length, "Verify size of column:"+i);
@@ -126,6 +134,83 @@ public class NewTest {
 	  catch(Exception e) {
 		  return false;
 	  }
+  }
+    
+  public boolean CheckShorted(char type,List<WebElement> elmList) { //type A for ascending D for descending
+	  ListIterator<WebElement> li=elmList.listIterator();
+	  String s1=elmList.get(0).getText(); //Initially hold 1st Elemet text
+	  String s2=elmList.get(elmList.size()-1).getText(); // Initially hold Last elemet text
+	  //System.out.println("First:"+s1+"; Last:"+s2);
+	  while(li.hasNext()) {
+		  if(type=='A') {
+			  s2=li.next().getText();
+			  //System.out.println(s1+";"+s2+"Compare Value:"+s1.compareTo(s2));
+			  if(s1.compareTo(s2)>0) {
+				  System.out.println("Ascending order fail for:"+s1+" , "+s2);
+				  return false;
+			  }
+			  s1=s2;
+		  }
+		  else if(type=='D') {
+			  //System.out.println(s1+";"+s2);
+			  
+			  s2=li.next().getText();
+			  if(s1.compareTo(s2)<0) {
+				  System.out.println("Descending order fail for:"+s1+" , "+s2);
+				  return false;
+			  }
+			  s1=s2;
+		  }
+		  else {
+			  System.out.println("Order type not match");
+			  return false;
+		  }
+		  
+	  }
+	  return false;
+  }
+  
+  public boolean checkNumericSorted(char type,List<WebElement> elmList) {
+	  ListIterator<WebElement> li=elmList.listIterator();
+	  String webVal;
+	  double[] doubleArr=new double[elmList.size()];
+	  double[] sortedArr=new double[elmList.size()];
+	  int counter=0;
+	  while(li.hasNext()) {
+		  webVal=li.next().getText();
+		  if(isNumeric(webVal)) {
+			  doubleArr[counter]=Double.parseDouble(webVal);
+			  sortedArr[counter]=Double.parseDouble(webVal);
+			  counter++;
+		  }else {
+			  System.out.println(webVal+" is not a number");
+			  return false;
+		  }
+	  }
+	  System.out.println(Arrays.toString(doubleArr));
+	  //=doubleArr;
+	  Arrays.sort(sortedArr);
+	  System.out.println("Sorted number array:"+Arrays.toString(sortedArr));
+	  if(type=='A') {
+		  for(int i=0;i<doubleArr.length;i++) {
+			  System.out.println(doubleArr[i]+" ; "+sortedArr[i]);
+			  if(doubleArr[i]!=sortedArr[i]) {
+				  System.out.println("ascending number order fails for"+doubleArr[i]+" ; "+sortedArr[i]);
+				  return false;
+			  }
+		  }
+	  }
+	  else if(type=='D') {
+		  int j=doubleArr.length-1;
+		  for(int i=0;i<doubleArr.length;i++) {
+			  if(doubleArr[i]!=sortedArr[j]) {
+				  System.out.println("ascending number order fails for"+doubleArr[i]+" ; "+sortedArr[i]);
+				  return false;
+			  }
+			  j--;
+		  }
+	  }
+	  return true;
   }
 
 }
